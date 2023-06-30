@@ -19,12 +19,14 @@ impl<T> EFrame<T>
 where
     T: EIdHash,
 {
+    #[inline]
     pub fn new(data: T) -> Self {
         Self {
             data,
             initial: false,
         }
     }
+    #[inline]
     pub fn new_initial(data: T) -> Self {
         Self {
             data,
@@ -44,6 +46,7 @@ impl<T> Clone for EFrameSender<T>
 where
     T: EIdHash,
 {
+    #[inline]
     fn clone(&self) -> Self {
         Self {
             tx: self.tx.clone(),
@@ -79,6 +82,7 @@ where
 {
     type Target = Sender<EFrame<T>>;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.tx
     }
@@ -136,6 +140,7 @@ where
 {
     type Target = Receiver<EFrame<T>>;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.rx
     }
