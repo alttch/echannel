@@ -1,0 +1,13 @@
+[package]
+name = "echannel"
+version = "0.0.1"
+edition = "2018"
+authors = ["Serhij S. <div@altertech.com>"]
+license = "MIT"
+repository = "https://github.com/alttch/echannel"
+description = "Async channel for mixed events"
+readme = "README.md"
+keywords = ["async", "event", "channel"]
+
+[dependencies]
+async-channel = "1.8.0"

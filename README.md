@@ -1,2 +1,4 @@
 # echannel
-Async channel for mixed events
+
+Async channel for mixed events on top of
+<https://crates.io/crates/async-channel>
