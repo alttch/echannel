@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 use std::ops::Deref;
 
 pub trait EIdHash {
-    fn eid_hash(&self) -> u64;
+    fn eid_hash(&self) -> Option<u64>;
 }
 
 pub struct EFrame<T>
@@ -94,9 +94,12 @@ where
 
 macro_rules! process_recv {
     ($frame: expr, $processed: expr) => {
-        let eid_hash = $frame.data.eid_hash();
-        if !$frame.initial || !$processed.contains(&eid_hash) {
-            $processed.insert(eid_hash);
+        if let Some(eid_hash) = $frame.data.eid_hash() {
+            if !$frame.initial || !$processed.contains(&eid_hash) {
+                $processed.insert(eid_hash);
+                return Ok($frame.data);
+            }
+        } else {
             return Ok($frame.data);
         }
     };
