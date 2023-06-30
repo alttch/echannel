@@ -1,4 +1,5 @@
-use async_channel::{Receiver, RecvError, Sender};
+use async_channel::{Receiver, Sender};
+pub use async_channel::{RecvError, TryRecvError, TrySendError};
 use std::collections::BTreeSet;
 use std::ops::Deref;
 
@@ -62,6 +63,14 @@ where
     pub fn send_initial(&self, data: T) -> async_channel::Send<'_, EFrame<T>> {
         self.tx.send(EFrame::new_initial(data))
     }
+    #[inline]
+    pub fn try_send(&self, data: T) -> Result<(), TrySendError<EFrame<T>>> {
+        self.tx.try_send(EFrame::new(data))
+    }
+    #[inline]
+    pub fn try_send_initial(&self, data: T) -> Result<(), TrySendError<EFrame<T>>> {
+        self.tx.try_send(EFrame::new_initial(data))
+    }
 }
 
 impl<T> Deref for EFrameSender<T>
@@ -83,19 +92,38 @@ where
     processed: BTreeSet<u64>,
 }
 
+macro_rules! process_recv {
+    ($frame: expr, $processed: expr) => {
+        let eid_hash = $frame.data.eid_hash();
+        if !$frame.initial || !$processed.contains(&eid_hash) {
+            $processed.insert(eid_hash);
+            return Ok($frame.data);
+        }
+    };
+}
+
 impl<T> EFrameReceiver<T>
 where
     T: EIdHash,
 {
     pub async fn recv(&mut self) -> Result<T, RecvError> {
         loop {
-            let frame = self.rx.recv().await?;
-            let eid_hash = frame.data.eid_hash();
-            if !frame.initial || !self.processed.contains(&eid_hash) {
-                self.processed.insert(eid_hash);
-                return Ok(frame.data);
-            }
+            process_recv!(self.rx.recv().await?, self.processed);
         }
+    }
+    pub fn recv_blocking(&mut self) -> Result<T, RecvError> {
+        loop {
+            process_recv!(self.rx.recv_blocking()?, self.processed);
+        }
+    }
+    pub fn try_recv(&mut self) -> Result<T, TryRecvError> {
+        loop {
+            process_recv!(self.rx.try_recv()?, self.processed);
+        }
+    }
+    #[inline]
+    pub fn reset_processed(&mut self) {
+        self.processed.clear();
     }
 }
 
